@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 // Special ASN characters : ; = , < . ( ) [ ]
 pub const LEFTPAREN: &[u8; 1] = b"(";
 pub const RIGHTPAREN: &[u8; 1] = b")";
@@ -31,30 +29,12 @@ pub enum Token {
     Comma,
     LessThan,
     Dot,
+    Whitespace,
+    Ident(Vec<u8>),
     // Keywords
     Definitions,
     Sequence,
     Begin,
     End,
     Enumerated,
-}
-
-impl TryFrom<u8> for Token {
-    type Error = ();
-
-    fn try_from(value: u8) -> Result<Self, Self::Error> {
-        match &[value] {
-            LEFTPAREN => Ok(Token::LeftParen),
-            RIGHTPAREN => Ok(Token::RightParen),
-            LEFTBRACKET => Ok(Token::LeftBracket),
-            RIGHTBRACKET => Ok(Token::RightBracket),
-            COLON => Ok(Token::Colon),
-            SEMICOLON => Ok(Token::Semicolon),
-            EQUALS => Ok(Token::Equals),
-            COMMA => Ok(Token::Comma),
-            LESSTHAN => Ok(Token::LessThan),
-            DOT => Ok(Token::Dot),
-            _ => Err(()),
-        }
-    }
 }
