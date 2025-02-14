@@ -42,9 +42,14 @@ impl Iterator for Lexer<'_> {
                     let mut ident = vec![];
                     loop { 
                         let v = self.input[self.position];
-                        if (v as char).is_ascii_alphabetic() {
+                        if (v as char).is_ascii_alphabetic() || (v as char) == '_' {
                             ident.push(v);
-                            if self.input[self.peek_position].is_ascii_alphabetic() {
+                            if self.peek_position == self.input.len() {
+                                break;
+                            }
+
+                            let peek = self.input[self.peek_position];
+                            if peek.is_ascii_alphabetic() || (peek as char)  == '_' {
                                 self.increment_position();
                             } else {
                                 break;
@@ -54,7 +59,7 @@ impl Iterator for Lexer<'_> {
                         }
                     }
 
-                    Token::Ident(ident)
+                    Token::parse_ident(ident)
                 },
                 t => panic!("Cannot parse the token {:?}", t),
             };

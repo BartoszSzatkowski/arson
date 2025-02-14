@@ -20,15 +20,31 @@ fn parses_asn1_special_characters() {
 
 #[test]
 fn parses_idents() {
-    let input = b" abcd ";
+    let input = b" ab_cd ";
     let l = Lexer::new(input);
 
     assert_eq!(
         vec![
             Token::Whitespace,
-            Token::Ident(b"abcd".to_vec()),
+            Token::Ident(b"ab_cd".to_vec()),
             Token::Whitespace,
-            Token::Dot,
+        ],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
+
+#[test]
+fn parses_keywords() {
+    let input = b"DEFINITIONS BEGIN FROM";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![
+            Token::Definitions,
+            Token::Whitespace,
+            Token::Begin,
+            Token::Whitespace,
+            Token::From
         ],
         l.into_iter().collect::<Vec<_>>()
     )
