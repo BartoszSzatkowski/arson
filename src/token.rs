@@ -32,6 +32,7 @@ pub enum Token {
     Dot,
     Whitespace,
     Ident(Vec<u8>),
+    Number(i64), // assumming that numbers bigger that that does not apprear on the reagular basis
     // Keywords
     Definitions,
     Sequence,
@@ -42,7 +43,7 @@ pub enum Token {
 }
 
 impl Token {
-    pub fn parse_ident(ident: Vec<u8>) -> Self {
+    pub fn parse_ident(ident: &Vec<u8>) -> Self {
         match ident.as_slice() {
             DEFINITIONS => Self::Definitions,
             SEQUENCE => Self::Sequence,
@@ -50,7 +51,7 @@ impl Token {
             END => Self::End,
             ENUMERATED => Self::Enumerated,
             FROM => Self::From,
-            _ => Self::Ident(ident),
+            _ => Self::Ident(ident.to_vec()),
         }
     }
 }

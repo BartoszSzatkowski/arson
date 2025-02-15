@@ -49,3 +49,20 @@ fn parses_keywords() {
         l.into_iter().collect::<Vec<_>>()
     )
 }
+
+#[test]
+fn parses_digits() {
+    let input = b"123 BEGIN FROM";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![
+            Token::Number(123_i64),
+            Token::Whitespace,
+            Token::Begin,
+            Token::Whitespace,
+            Token::From
+        ],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
