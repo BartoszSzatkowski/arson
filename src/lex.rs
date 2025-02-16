@@ -51,14 +51,14 @@ impl<'a> Lexer<'a> {
         let mut digits = vec![];
         loop {
             let v = self.input[self.position];
-            if (v as char).is_ascii_digit() || (v as char) == '_' {
+            if (v as char).is_ascii_digit() || v == b'-' {
                 digits.push(v);
                 if self.peek_position == self.input.len() {
                     break;
                 }
 
                 let peek = self.input[self.peek_position];
-                if peek.is_ascii_digit() || (peek as char) == '_' {
+                if peek.is_ascii_digit() {
                     self.increment_position();
                 } else {
                     break;
@@ -94,7 +94,7 @@ impl Iterator for Lexer<'_> {
                 DOT => Token::Dot,
                 [v] if (*v as char).is_whitespace() => Token::Whitespace,
                 [v] if (*v as char).is_ascii_alphabetic() => self.parse_ident(),
-                [v] if (*v as char).is_ascii_digit() => self.parse_number(),
+                [v] if (*v as char).is_ascii_digit() || *v == b'-' => self.parse_number(),
                 t => panic!("Cannot parse the token {:?}", t),
             };
             self.increment_position();

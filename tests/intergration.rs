@@ -51,18 +51,23 @@ fn parses_keywords() {
 }
 
 #[test]
-fn parses_digits() {
-    let input = b"123 BEGIN FROM";
+fn parses_numbers() {
+    let input = b"123";
     let l = Lexer::new(input);
 
     assert_eq!(
-        vec![
-            Token::Number(123_i64),
-            Token::Whitespace,
-            Token::Begin,
-            Token::Whitespace,
-            Token::From
-        ],
+        vec![Token::Number(123_i64),],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
+
+#[test]
+fn parses_negative_numbers() {
+    let input = b"-123";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![Token::Number(-123_i64),],
         l.into_iter().collect::<Vec<_>>()
     )
 }
