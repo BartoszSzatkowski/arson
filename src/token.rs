@@ -1,14 +1,14 @@
 // Special ASN characters : ; = , < . ( ) [ ]
-pub const COLON: &[u8; 1] = b":";
-pub const COMMA: &[u8; 1] = b",";
-pub const DOT: &[u8; 1] = b".";
-pub const EQUALS: &[u8; 1] = b"=";
-pub const LEFTBRACKET: &[u8; 1] = b"[";
-pub const LEFTPAREN: &[u8; 1] = b"(";
-pub const LESSTHAN: &[u8; 1] = b"<";
-pub const RIGHTBRACKET: &[u8; 1] = b"]";
-pub const RIGHTPAREN: &[u8; 1] = b")";
-pub const SEMICOLON: &[u8; 1] = b";";
+pub const COLON: u8 = b':';
+pub const COMMA: u8 = b',';
+pub const DOT: u8 = b'.';
+pub const EQUALS: u8 = b'=';
+pub const LEFTBRACKET: u8 = b'[';
+pub const LEFTPAREN: u8 = b'(';
+pub const LESSTHAN: u8 = b'<';
+pub const RIGHTBRACKET: u8 = b']';
+pub const RIGHTPAREN: u8 = b')';
+pub const SEMICOLON: u8 = b';';
 // Keywords
 pub const ANY: &[u8] = b"ANY";
 pub const APPLICATION: &[u8] = b"APPLICATION";
@@ -65,7 +65,6 @@ pub enum Token {
     Comma,
     LessThan,
     Dot,
-    Whitespace,
     Ident(Vec<u8>),
     Number(i64), // assumming that numbers bigger that that does not apprear on the reagular basis
     // Keywords

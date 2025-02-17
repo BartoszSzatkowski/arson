@@ -24,11 +24,7 @@ fn parses_idents() {
     let l = Lexer::new(input);
 
     assert_eq!(
-        vec![
-            Token::Whitespace,
-            Token::Ident(b"ab_cd".to_vec()),
-            Token::Whitespace,
-        ],
+        vec![Token::Ident(b"ab_cd".to_vec()),],
         l.into_iter().collect::<Vec<_>>()
     )
 }
@@ -39,13 +35,7 @@ fn parses_keywords() {
     let l = Lexer::new(input);
 
     assert_eq!(
-        vec![
-            Token::Definitions,
-            Token::Whitespace,
-            Token::Begin,
-            Token::Whitespace,
-            Token::From
-        ],
+        vec![Token::Definitions, Token::Begin, Token::From],
         l.into_iter().collect::<Vec<_>>()
     )
 }
@@ -68,6 +58,21 @@ fn parses_negative_numbers() {
 
     assert_eq!(
         vec![Token::Number(-123_i64),],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
+
+#[test]
+fn ignores_whitespace() {
+    let input = b"   123   abc OF\n\t";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![
+            Token::Number(123_i64),
+            Token::Ident(b"abc".to_vec()),
+            Token::Of,
+        ],
         l.into_iter().collect::<Vec<_>>()
     )
 }

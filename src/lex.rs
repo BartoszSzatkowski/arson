@@ -74,6 +74,21 @@ impl<'a> Lexer<'a> {
 
         Token::Number(numeric_string.parse::<i64>().unwrap())
     }
+
+    fn eat_whitespace(&mut self) -> Option<()> {
+        loop {
+            if self.position == self.input.len() {
+                // EOF
+                return None;
+            }
+            if (self.input[self.position] as char).is_ascii_whitespace() {
+                self.increment_position();
+            } else {
+                // More tokens remaning
+                return Some(());
+            }
+        }
+    }
 }
 
 impl Iterator for Lexer<'_> {
@@ -81,20 +96,24 @@ impl Iterator for Lexer<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.position < self.input.len() {
-            let tok = match &[self.input[self.position]] {
-                LEFTPAREN => Token::LeftParen,
-                RIGHTPAREN => Token::RightParen,
-                LEFTBRACKET => Token::LeftBracket,
-                RIGHTBRACKET => Token::RightBracket,
+            if (self.input[self.position] as char).is_ascii_whitespace()
+                && self.eat_whitespace().is_none()
+            {
+                return None;
+            }
+            let tok = match self.input[self.position] {
                 COLON => Token::Colon,
-                SEMICOLON => Token::Semicolon,
-                EQUALS => Token::Equals,
                 COMMA => Token::Comma,
-                LESSTHAN => Token::LessThan,
                 DOT => Token::Dot,
-                [v] if (*v as char).is_whitespace() => Token::Whitespace,
-                [v] if (*v as char).is_ascii_alphabetic() => self.parse_ident(),
-                [v] if (*v as char).is_ascii_digit() || *v == b'-' => self.parse_number(),
+                EQUALS => Token::Equals,
+                LEFTBRACKET => Token::LeftBracket,
+                LEFTPAREN => Token::LeftParen,
+                LESSTHAN => Token::LessThan,
+                RIGHTBRACKET => Token::RightBracket,
+                RIGHTPAREN => Token::RightParen,
+                SEMICOLON => Token::Semicolon,
+                v if (v as char).is_ascii_alphabetic() => self.parse_ident(),
+                v if (v as char).is_ascii_digit() || v == b'-' => self.parse_number(),
                 t => panic!("Cannot parse the token {:?}", t),
             };
             self.increment_position();
