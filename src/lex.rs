@@ -76,8 +76,9 @@ impl<'a> Lexer<'a> {
     }
 
     fn eat_whitespace(&mut self) -> Option<()> {
+        self.increment_position();
         loop {
-            if self.position == self.input.len() {
+            if self.position >= self.input.len() {
                 // EOF
                 return None;
             }
@@ -89,6 +90,27 @@ impl<'a> Lexer<'a> {
             }
         }
     }
+
+    fn eat_comment(&mut self) -> Option<()> {
+        self.increment_position();
+        loop {
+            if self.position >= self.input.len() {
+                // EOF
+                return None;
+            }
+            if self.input[self.position] == b'\n' {
+                return Some(());
+            }
+
+            if self.input[self.position] == b'-' && self.input[self.peek_position] == b'-' {
+                self.increment_position();
+                self.increment_position();
+                return Some(());
+            } else {
+                self.increment_position();
+            }
+        }
+    }
 }
 
 impl Iterator for Lexer<'_> {
@@ -96,10 +118,34 @@ impl Iterator for Lexer<'_> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.position < self.input.len() {
-            if (self.input[self.position] as char).is_ascii_whitespace()
-                && self.eat_whitespace().is_none()
-            {
-                return None;
+            loop {
+                if self.position >= self.input.len() {
+                    return None;
+                }
+                let eating_whitespace_result =
+                    if (self.input[self.position] as char).is_ascii_whitespace() {
+                        self.eat_whitespace()
+                    } else {
+                        Some(())
+                    };
+                if self.position >= self.input.len() {
+                    return None;
+                }
+                let eating_comment_result = if self.input[self.position] == b'-'
+                    && self.input[self.peek_position] == b'-'
+                {
+                    self.eat_comment()
+                } else {
+                    Some(())
+                };
+
+                if eating_whitespace_result.is_none() || eating_comment_result.is_none() {
+                    return None;
+                }
+
+                if eating_whitespace_result.is_some() && eating_comment_result.is_some() {
+                    break;
+                }
             }
             let tok = match self.input[self.position] {
                 COLON => Token::Colon,

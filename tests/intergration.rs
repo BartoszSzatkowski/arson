@@ -76,3 +76,14 @@ fn ignores_whitespace() {
         l.into_iter().collect::<Vec<_>>()
     )
 }
+
+#[test]
+fn ignores_comments() {
+    let input = b"123 --comment--abc";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![Token::Number(123_i64), Token::Ident(b"abc".to_vec()),],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
