@@ -94,18 +94,27 @@ impl<'a> Lexer<'a> {
     fn eat_comment(&mut self) -> Option<()> {
         self.increment_position();
         loop {
-            if self.position >= self.input.len() {
+            if self.peek_position >= self.input.len() {
                 // EOF
                 return None;
             }
             if self.input[self.position] == b'\n' {
-                return Some(());
+                self.increment_position();
+                if self.position >= self.input.len() {
+                    return None;
+                } else {
+                    return Some(());
+                }
             }
 
             if self.input[self.position] == b'-' && self.input[self.peek_position] == b'-' {
                 self.increment_position();
                 self.increment_position();
-                return Some(());
+                if self.position >= self.input.len() {
+                    return None;
+                } else {
+                    return Some(());
+                }
             } else {
                 self.increment_position();
             }

@@ -87,3 +87,29 @@ fn ignores_comments() {
         l.into_iter().collect::<Vec<_>>()
     )
 }
+
+#[test]
+fn terminates_comments_at_the_end_of_the_line() {
+    let input = b"123 abc--\n123";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![
+            Token::Number(123_i64),
+            Token::Ident(b"abc".to_vec()),
+            Token::Number(123_i64)
+        ],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
+
+#[test]
+fn ignores_comments_at_the_end_of_the_file() {
+    let input = b"123 --comment--abc--";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![Token::Number(123_i64), Token::Ident(b"abc".to_vec()),],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
