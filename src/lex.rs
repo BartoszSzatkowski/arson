@@ -23,22 +23,34 @@ impl<'a> Lexer<'a> {
         self.peek_position += 1;
     }
 
-    pub fn parse_ident(&mut self) -> Token {
-        let mut ident = vec![];
-        loop {
-            let v = self.input[self.position];
-            if (v as char).is_ascii_alphanumeric() || (v as char) == '_' {
-                ident.push(v);
-                if self.peek_position == self.input.len() {
-                    break;
-                }
+    pub fn curr_pos_byte(&self) -> Option<u8> {
+        if self.position < self.input.len() {
+            Some(self.input[self.position])
+        } else {
+            None
+        }
+    }
 
-                let peek = self.input[self.peek_position];
-                if peek.is_ascii_alphanumeric() || (peek as char) == '_' {
-                    self.increment_position();
-                } else {
-                    break;
-                }
+    pub fn peek_pos_byte(&self) -> Option<u8> {
+        if self.peek_position < self.input.len() {
+            Some(self.input[self.peek_position])
+        } else {
+            None
+        }
+    }
+
+    pub fn parse_ident(&mut self, first_byte: u8) -> Token {
+        let mut ident = vec![first_byte];
+        self.increment_position();
+
+        loop {
+            let Some(c) = self.curr_pos_byte() else {
+                break;
+            };
+
+            if (c as char).is_ascii_alphanumeric() || (c as char) == '_' {
+                ident.push(c);
+                self.increment_position();
             } else {
                 break;
             }
@@ -47,22 +59,17 @@ impl<'a> Lexer<'a> {
         Token::parse_ident(&ident)
     }
 
-    pub fn parse_number(&mut self) -> Token {
-        let mut digits = vec![];
-        loop {
-            let v = self.input[self.position];
-            if (v as char).is_ascii_digit() || v == b'-' {
-                digits.push(v);
-                if self.peek_position == self.input.len() {
-                    break;
-                }
+    pub fn parse_number(&mut self, first_byte: u8) -> Token {
+        let mut digits = vec![first_byte];
+        self.increment_position();
 
-                let peek = self.input[self.peek_position];
-                if peek.is_ascii_digit() {
-                    self.increment_position();
-                } else {
-                    break;
-                }
+        loop {
+            let Some(d) = self.curr_pos_byte() else {
+                break;
+            };
+            if (d as char).is_ascii_digit() {
+                digits.push(d);
+                self.increment_position();
             } else {
                 break;
             }
@@ -75,49 +82,40 @@ impl<'a> Lexer<'a> {
         Token::Number(numeric_string.parse::<i64>().unwrap())
     }
 
-    fn eat_whitespace(&mut self) -> Option<()> {
+    fn eat_whitespace(&mut self) {
         self.increment_position();
+
         loop {
-            if self.position >= self.input.len() {
-                // EOF
-                return None;
-            }
-            if (self.input[self.position] as char).is_ascii_whitespace() {
+            if matches!(self.curr_pos_byte(), Some(b) if (b as char).is_ascii_whitespace()) {
                 self.increment_position();
             } else {
-                // More tokens remaning
-                return Some(());
+                break;
             }
         }
     }
 
-    fn eat_comment(&mut self) -> Option<()> {
+    fn eat_comment(&mut self) {
         self.increment_position();
+        self.increment_position();
+
         loop {
-            if self.peek_position >= self.input.len() {
-                // EOF
-                return None;
-            }
-            if self.input[self.position] == b'\n' {
+            let Some(b) = self.curr_pos_byte() else {
+                break;
+            };
+
+            dbg!(b as char);
+            if b == b'\n' {
                 self.increment_position();
-                if self.position >= self.input.len() {
-                    return None;
-                } else {
-                    return Some(());
-                }
+                break;
+            }
+            if b == b'-' && matches!(self.peek_pos_byte(), Some(p) if p == b'-') {
+                self.increment_position();
+                self.increment_position();
+                dbg!("breaking", self.curr_pos_byte().map(|c| c as char));
+                break;
             }
 
-            if self.input[self.position] == b'-' && self.input[self.peek_position] == b'-' {
-                self.increment_position();
-                self.increment_position();
-                if self.position >= self.input.len() {
-                    return None;
-                } else {
-                    return Some(());
-                }
-            } else {
-                self.increment_position();
-            }
+            self.increment_position();
         }
     }
 }
@@ -128,50 +126,73 @@ impl Iterator for Lexer<'_> {
     fn next(&mut self) -> Option<Self::Item> {
         if self.position < self.input.len() {
             loop {
-                if self.position >= self.input.len() {
-                    return None;
-                }
-                let eating_whitespace_result =
-                    if (self.input[self.position] as char).is_ascii_whitespace() {
-                        self.eat_whitespace()
-                    } else {
-                        Some(())
-                    };
-                if self.position >= self.input.len() {
-                    return None;
-                }
-                let eating_comment_result = if self.input[self.position] == b'-'
-                    && self.input[self.peek_position] == b'-'
-                {
-                    self.eat_comment()
-                } else {
-                    Some(())
-                };
+                let mut has_eaten = false;
 
-                if eating_whitespace_result.is_none() || eating_comment_result.is_none() {
-                    return None;
+                let b = self.curr_pos_byte()?;
+                dbg!(b as char, self.peek_pos_byte().map(|c| c as char));
+                if (b as char).is_ascii_whitespace() {
+                    self.eat_whitespace();
+                    has_eaten = true;
                 }
 
-                if eating_whitespace_result.is_some() && eating_comment_result.is_some() {
+                let b = self.curr_pos_byte()?;
+                dbg!(b as char, self.peek_pos_byte().map(|c| c as char));
+                if b == b'-' && matches!(self.peek_pos_byte(), Some(p) if p == b'-') {
+                    self.eat_comment();
+                    has_eaten = true;
+                }
+
+                if !has_eaten {
                     break;
                 }
             }
-            let tok = match self.input[self.position] {
-                COLON => Token::Colon,
-                COMMA => Token::Comma,
-                DOT => Token::Dot,
-                EQUALS => Token::Equals,
-                LEFTBRACKET => Token::LeftBracket,
-                LEFTPAREN => Token::LeftParen,
-                LESSTHAN => Token::LessThan,
-                RIGHTBRACKET => Token::RightBracket,
-                RIGHTPAREN => Token::RightParen,
-                SEMICOLON => Token::Semicolon,
-                v if (v as char).is_ascii_alphabetic() => self.parse_ident(),
-                v if (v as char).is_ascii_digit() || v == b'-' => self.parse_number(),
+
+            let b = self.curr_pos_byte()?;
+            let tok = match b {
+                COLON => {
+                    self.increment_position();
+                    Token::Colon
+                }
+                COMMA => {
+                    self.increment_position();
+                    Token::Comma
+                }
+                DOT => {
+                    self.increment_position();
+                    Token::Dot
+                }
+                EQUALS => {
+                    self.increment_position();
+                    Token::Equals
+                }
+                LEFTBRACKET => {
+                    self.increment_position();
+                    Token::LeftBracket
+                }
+                LEFTPAREN => {
+                    self.increment_position();
+                    Token::LeftParen
+                }
+                LESSTHAN => {
+                    self.increment_position();
+                    Token::LessThan
+                }
+                RIGHTBRACKET => {
+                    self.increment_position();
+                    Token::RightBracket
+                }
+                RIGHTPAREN => {
+                    self.increment_position();
+                    Token::RightParen
+                }
+                SEMICOLON => {
+                    self.increment_position();
+                    Token::Semicolon
+                }
+                v if (v as char).is_ascii_alphabetic() => self.parse_ident(v),
+                v if (v as char).is_ascii_digit() || v == b'-' => self.parse_number(v),
                 t => panic!("Cannot parse the token {:?}", t),
             };
-            self.increment_position();
 
             Some(tok)
         } else {
