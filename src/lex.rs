@@ -48,7 +48,11 @@ impl<'a> Lexer<'a> {
                 break;
             };
 
-            if (c as char).is_ascii_alphanumeric() || (c as char) == '_' {
+            if (c as char).is_ascii_alphanumeric()
+                || (c as char) == '_'
+                || ((c as char) == '-'
+                    && !matches!(self.peek_pos_byte(), Some(b) if (b as char) == '-'))
+            {
                 ident.push(c);
                 self.increment_position();
             } else {

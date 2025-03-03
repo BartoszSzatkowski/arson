@@ -136,3 +136,14 @@ fn ignores_comments_at_multiple_lines() {
         l.into_iter().collect::<Vec<_>>()
     )
 }
+
+#[test]
+fn parses_idents_with_dashes() {
+    let input = b"this-is-an-identifier";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![Token::Ident(b"this-is-an-identifier".to_vec())],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
