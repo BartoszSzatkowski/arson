@@ -113,3 +113,26 @@ fn ignores_comments_at_the_end_of_the_file() {
         l.into_iter().collect::<Vec<_>>()
     )
 }
+
+#[test]
+fn ignores_comments_with_dashes_inside() {
+    let input = b"123 -- also a -- --comment--abc--";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![Token::Number(123_i64), Token::Ident(b"abc".to_vec()),],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}
+
+#[test]
+fn ignores_comments_at_multiple_lines() {
+    let input = b"-- This is a comment
+-- on multiple lines -- 123";
+    let l = Lexer::new(input);
+
+    assert_eq!(
+        vec![Token::Number(123_i64)],
+        l.into_iter().collect::<Vec<_>>()
+    )
+}

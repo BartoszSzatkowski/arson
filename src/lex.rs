@@ -103,7 +103,6 @@ impl<'a> Lexer<'a> {
                 break;
             };
 
-            dbg!(b as char);
             if b == b'\n' {
                 self.increment_position();
                 break;
@@ -111,7 +110,6 @@ impl<'a> Lexer<'a> {
             if b == b'-' && matches!(self.peek_pos_byte(), Some(p) if p == b'-') {
                 self.increment_position();
                 self.increment_position();
-                dbg!("breaking", self.curr_pos_byte().map(|c| c as char));
                 break;
             }
 
@@ -129,14 +127,12 @@ impl Iterator for Lexer<'_> {
                 let mut has_eaten = false;
 
                 let b = self.curr_pos_byte()?;
-                dbg!(b as char, self.peek_pos_byte().map(|c| c as char));
                 if (b as char).is_ascii_whitespace() {
                     self.eat_whitespace();
                     has_eaten = true;
                 }
 
                 let b = self.curr_pos_byte()?;
-                dbg!(b as char, self.peek_pos_byte().map(|c| c as char));
                 if b == b'-' && matches!(self.peek_pos_byte(), Some(p) if p == b'-') {
                     self.eat_comment();
                     has_eaten = true;
